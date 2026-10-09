@@ -530,5 +530,34 @@ h1 { font-size: clamp(48px, 6.8vw, 86px); line-height: .98; letter-spacing: -.07
   }
 })();
 </script>
+ <script>
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7abtQxaVQTNHCk3lpYBM_Qsbj9nQiGgnd_5UKzd_6luS3jTT9UHhPYUjKv4GRSuf86FLz-pV8p3a6/pub?gid=0&single=true&output=csv';
+
+fetch(CSV_URL)
+  .then(response => response.text())
+  .then(csv => {
+    const rows = csv.trim().split(/\r?\n/).map(line => line.split(','));
+    const table = document.querySelector('#pricing .service-rate-table');
+    if (!table || rows.length < 2) return;
+
+    rows.slice(1).forEach(row => {
+      const service = (row[0] || '').trim();
+      const tableRow = [...table.querySelectorAll('tbody tr')]
+        .find(tr => tr.querySelector('th[scope="row"]')?.textContent.trim() === service);
+
+      if (!tableRow) return;
+
+      const cells = tableRow.querySelectorAll('td');
+      [1, 2, 3].forEach((i, idx) => {
+        const price = (row[i] || '').trim();
+        if (cells[idx]) {
+          const span = cells[idx].querySelector('.rate-blank');
+          if (span) span.textContent = price || 'Your rate';
+        }
+      });
+    });
+  })
+  .catch(error => console.error('Could not load rates', error));
+</script>
 </body>
 </html>
